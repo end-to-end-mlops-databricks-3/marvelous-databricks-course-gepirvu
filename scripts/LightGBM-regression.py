@@ -1,10 +1,13 @@
-# Databricks notebook source
+# COMMAND ----------
+
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.getOrCreate()
 import pandas as pd
 
 # COMMAND ----------
 
 # File location and type
-file_location = "/FileStore/tables/insurance.csv"
+file_location = "dbfs:/Volumes/mlops_dev/pirvugeo/data/insurance.csv"
 file_type = "csv"
 
 # CSV options
@@ -99,13 +102,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, rando
 # COMMAND ----------
 
 import lightgbm as lgb
-model = lgb.LGBMRegressor()
-
-# COMMAND ----------
-
-#or use linear reg
-from sklearn.linear_model import LinearRegression
-model = LinearRegression()
+model = lgb.LGBMRegressor(force_col_wise=True)
 
 # COMMAND ----------
 
@@ -208,3 +205,24 @@ best_r2 = grid_search.best_score_
 best_params = grid_search.best_params_
 print ("Best R-Squared: {:.2f} %".format(best_r2*100))
 print ("Best Parameters:", best_params)
+# COMMAND ----------
+best_params = {'learning_rate': 0.08, 'n_estimators': 80, 'num_leaves': 30}
+
+final_model = lgb.LGBMRegressor(**best_params)
+final_model.fit(X_train, y_train)
+
+# COMMAND ----------
+y_pred = final_model.predict(X_test)
+
+# COMMAND ----------
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+import numpy as np
+
+r2 = r2_score(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+mae = mean_absolute_error(y_test, y_pred)
+
+print(f"R² Score: {r2:.4f}")
+print(f"RMSE: {rmse:.2f}")
+print(f"MAE: {mae:.2f}")
