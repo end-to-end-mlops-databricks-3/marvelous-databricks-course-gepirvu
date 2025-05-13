@@ -4,7 +4,9 @@ import pandas as pd
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_timestamp, to_utc_timestamp
 from sklearn.model_selection import train_test_split
+
 from insurance.config import ProjectConfig
+
 
 class DataProcessor:
     """A class for preprocessing and managing DataFrame operations."""
@@ -34,13 +36,12 @@ class DataProcessor:
         feature_columns = [col for col in self.df.columns if col != self.config.target]
         relevant_columns = feature_columns + [self.config.target]
         self.df = self.df[relevant_columns]
-        
+
         print("\n[DataProcessor] Data after preprocessing:")
         print(self.df.head())
 
-
     def split_data(self, test_size: float = 0.2, random_state: int = 42) -> tuple[pd.DataFrame, pd.DataFrame]:
-        train_set, test_set= train_test_split(self.df, test_size=test_size, random_state=random_state)
+        train_set, test_set = train_test_split(self.df, test_size=test_size, random_state=random_state)
         return train_set, test_set
 
     def save_to_catalog(self, train_set: pd.DataFrame, test_set: pd.DataFrame) -> None:

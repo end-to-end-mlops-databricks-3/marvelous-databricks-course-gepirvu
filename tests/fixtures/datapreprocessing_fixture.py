@@ -1,25 +1,22 @@
 """Dataloader fixture."""
 
+from collections.abc import Generator
+
 import pandas as pd
 import pytest
+from databricks.connect import DatabricksSession
 from loguru import logger
 from pyspark.sql import SparkSession
 
 from insurance import PROJECT_DIR
 from insurance.config import ProjectConfig, Tags
 from tests.unit_tests.spark_config import spark_config
-from collections.abc import Generator
-from databricks.connect import DatabricksSession 
 
 
 @pytest.fixture(scope="session")
 def spark_session() -> Generator[DatabricksSession, None, None]:
     """Creates a Spark Connect session to Databricks."""
-    spark = (
-        DatabricksSession.builder
-        .remote(spark_config.host)
-        .getOrCreate()
-    )
+    spark = DatabricksSession.builder.remote(spark_config.host).getOrCreate()
     yield spark
     spark.stop()
 

@@ -1,8 +1,10 @@
 # src/insurance/config.py
 
 from typing import Any
+
 import yaml
 from pydantic import BaseModel
+
 
 class ProjectConfig(BaseModel):
     """Represent project configuration parameters loaded from YAML.
@@ -10,6 +12,7 @@ class ProjectConfig(BaseModel):
     Handles feature specifications, catalog details, and experiment parameters.
     Supports environment-specific configuration overrides.
     """
+
     num_features: list[str]
     cat_features: list[str]
     target: str
@@ -30,12 +33,13 @@ class ProjectConfig(BaseModel):
             config_dict["data_path"] = config_dict[env]["data_path"]
             return cls(**config_dict)
 
+
 class Tags(BaseModel):
     """Represents a set of tags for a Git commit.
 
     Contains information about the Git SHA, branch, and job run ID.
     """
+
     git_sha: str
     branch: str
     job_run_id: str
-    

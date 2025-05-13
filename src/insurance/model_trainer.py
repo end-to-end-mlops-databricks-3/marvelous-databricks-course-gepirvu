@@ -1,8 +1,10 @@
-import pandas as pd
 import lightgbm as lgb
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error
+import pandas as pd
+from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
+from sklearn.model_selection import GridSearchCV, train_test_split
+
 from insurance.config import ProjectConfig
+
 
 class ModelTrainer:
     """Trains and evaluates a LightGBM regression model based on project config."""
@@ -22,15 +24,10 @@ class ModelTrainer:
         param_grid = {
             "learning_rate": self.config.parameters["learning_rate"],
             "n_estimators": self.config.parameters["n_estimators"],
-            "num_leaves": self.config.parameters["num_leaves"]
+            "num_leaves": self.config.parameters["num_leaves"],
         }
 
-        grid_search = GridSearchCV(
-            estimator=self.model,
-            param_grid=param_grid,
-            scoring="r2",
-            cv=5
-        )
+        grid_search = GridSearchCV(estimator=self.model, param_grid=param_grid, scoring="r2", cv=5)
         grid_search.fit(X_train, y_train)
         self.best_model = grid_search.best_estimator_
         return grid_search.best_params_, grid_search.best_score_
@@ -43,5 +40,5 @@ class ModelTrainer:
         return {
             "r2": r2_score(y_true, y_pred),
             "rmse": root_mean_squared_error(y_true, y_pred),
-            "mae": mean_absolute_error(y_true, y_pred)
+            "mae": mean_absolute_error(y_true, y_pred),
         }

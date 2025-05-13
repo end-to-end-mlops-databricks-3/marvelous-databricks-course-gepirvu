@@ -5,10 +5,10 @@ import pytest
 from conftest import CATALOG_DIR
 from delta.tables import DeltaTable
 from pyspark.sql import SparkSession
+from pyspark.sql.connect.session import SparkSession as SparkSession
 
 from insurance.config import ProjectConfig
 from insurance.data_preprocessing import DataProcessor
-from pyspark.sql.connect.session import SparkSession as SparkSession
 
 
 def test_data_ingestion(sample_data: pd.DataFrame) -> None:
@@ -54,7 +54,7 @@ def test_column_transformations(sample_data: pd.DataFrame, config: ProjectConfig
     processor = DataProcessor(pandas_df=sample_data, config=config, spark=spark_session)
     processor.preprocess()
 
-    assert "region" not in processor.df.columns # Should be one-hot encoded
+    assert "region" not in processor.df.columns  # Should be one-hot encoded
     assert processor.df["sex"].isin([0, 1]).all()
     assert processor.df["smoker"].isin([0, 1]).all()
 

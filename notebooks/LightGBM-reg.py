@@ -1,18 +1,18 @@
 # COMMAND ----------
-from pathlib import Path
-from loguru import logger
-#import sys
-#sys.path.append(str(Path.cwd().parent / "src"))
-import yaml
-import matplotlib.pyplot as plt
 import lightgbm as lgb
+import matplotlib.pyplot as plt
+
+# import sys
+# sys.path.append(str(Path.cwd().parent / "src"))
+import yaml
+from loguru import logger
+from marvelous.logging import setup_logging
+from marvelous.timer import Timer
 from pyspark.sql import SparkSession
-import pandas as pd
+
 from insurance.config import ProjectConfig
 from insurance.data_preprocessing import DataProcessor
 from insurance.model_trainer import ModelTrainer
-from marvelous.timer import Timer
-from marvelous.logging import setup_logging
 
 # COMMAND ----------
 config = ProjectConfig.from_yaml(config_path="../project_config.yml", env="dev")
@@ -31,7 +31,7 @@ with Timer() as preprocess_timer:
     processor = DataProcessor(df, config, spark)
     processor.preprocess()
 
-    train_set, test_set = processor.split_data() #for UC save
+    train_set, test_set = processor.split_data()  # for UC save
     # Save to catalog
     logger.info("Saving data to catalog")
     processor.save_to_catalog(train_set, test_set)
@@ -65,5 +65,5 @@ plt.show()
 
 # COMMAND ----------
 # Enable change data feed (only once!)
-#logger.info("Enable change data feed")
-#processor.enable_change_data_feed()
+# logger.info("Enable change data feed")
+# processor.enable_change_data_feed()
