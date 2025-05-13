@@ -32,7 +32,7 @@ dev = ["databricks-connect==15.4.5",
        "pytest>=8.3.4, <9",             # Added by MA
     ]
 test = [
-    "delta-spark==3.3.0",
+    "delta-spark==3.2.0",
     "databricks-connect==15.4.5",
     "pytest>=8.3.4, <9",
     "pytest-cov >=6.1.0",
