@@ -8,6 +8,7 @@ from pyspark.sql import SparkSession
 
 from insurance.config import ProjectConfig
 from insurance.data_preprocessing import DataProcessor
+from pyspark.sql.connect.session import SparkSession as SparkSession
 
 
 def test_data_ingestion(sample_data: pd.DataFrame) -> None:

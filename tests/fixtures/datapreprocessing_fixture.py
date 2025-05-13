@@ -8,27 +8,18 @@ from pyspark.sql import SparkSession
 from insurance import PROJECT_DIR
 from insurance.config import ProjectConfig, Tags
 from tests.unit_tests.spark_config import spark_config
+from collections.abc import Generator
+from databricks.connect import DatabricksSession 
 
 
 @pytest.fixture(scope="session")
-def spark_session() -> SparkSession:
-    """Create and return a SparkSession for testing.
-
-    This fixture creates a SparkSession with the specified configuration and returns it for use in tests.
-    """
-    # One way
-    # spark = SparkSession.builder.getOrCreate()  # noqa
-    # Alternative way - better
+def spark_session() -> Generator[DatabricksSession, None, None]:
+    """Creates a Spark Connect session to Databricks."""
     spark = (
-        SparkSession.builder.master(spark_config.master)
-        .appName(spark_config.app_name)
-        .config("spark.executor.cores", spark_config.spark_executor_cores)
-        .config("spark.executor.instances", spark_config.spark_executor_instances)
-        .config("spark.sql.shuffle.partitions", spark_config.spark_sql_shuffle_partitions)
-        .config("spark.driver.bindAddress", spark_config.spark_driver_bindAddress)
+        DatabricksSession.builder
+        .remote(spark_config.host)
         .getOrCreate()
     )
-
     yield spark
     spark.stop()
 
