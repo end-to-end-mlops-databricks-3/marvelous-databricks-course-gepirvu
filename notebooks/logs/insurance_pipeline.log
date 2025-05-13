@@ -60,3 +60,10 @@
 2025-05-12 19:22:31.573 | INFO     | __main__:<module>:19 - Configuration: InsuranceConfig(dbfs_path='dbfs:/Volumes/mlops_dev/pirvugeo/data/insurance.csv', test_size=0.2, random_state=0, param_grid={'num_leaves': [29, 30, 31], 'learning_rate': [0.08, 0.1, 0.12], 'n_estimators': [80, 100, 120]})
 2025-05-12 19:23:06.048 | INFO     | __main__:<module>:15 - Pipeline started.
 2025-05-12 19:23:06.049 | INFO     | __main__:<module>:19 - Configuration: InsuranceConfig(dbfs_path='dbfs:/Volumes/mlops_dev/pirvugeo/data/insurance.csv', test_size=0.2, random_state=0, param_grid={'num_leaves': [29, 30, 31], 'learning_rate': [0.08, 0.1, 0.12], 'n_estimators': [80, 100, 120]})
+2025-05-12 19:23:09.646 | INFO     | __main__:<module>:15 - Pipeline started.
+2025-05-12 19:23:09.648 | INFO     | __main__:<module>:19 - Configuration: InsuranceConfig(dbfs_path='dbfs:/Volumes/mlops_dev/pirvugeo/data/insurance.csv', test_size=0.2, random_state=0, param_grid={'num_leaves': [29, 30, 31], 'learning_rate': [0.08, 0.1, 0.12], 'n_estimators': [80, 100, 120]})
+2025-05-12 19:23:13.660 | INFO     | __main__:<module>:11 - Data loaded and preprocessed in Elapsed time: 2.2572 seconds
+2025-05-12 19:23:29.222 | INFO     | __main__:<module>:11 - Model trained in Elapsed time: 14.2531 seconds
+2025-05-12 19:23:29.224 | INFO     | __main__:<module>:12 - Best Params: {'learning_rate': 0.08, 'n_estimators': 80, 'num_leaves': 29}
+2025-05-12 19:23:29.224 | INFO     | __main__:<module>:13 - R²: 0.8936, RMSE: 4114.37, MAE: 2503.02
+2025-05-12 19:23:45.160 | INFO     | __main__:<module>:1 - Pipeline finished successfully.

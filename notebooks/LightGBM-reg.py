@@ -1,77 +1,69 @@
-# Databricks notebook source
-# %pip install -e ../src
-# %restart_python
-
 # COMMAND ----------
-# Manually add src path if not using pip install
 from pathlib import Path
-import sys
-sys.path.append(str(Path.cwd().parent / "src"))
-
-# COMMAND ----------
 from loguru import logger
+#import sys
+#sys.path.append(str(Path.cwd().parent / "src"))
+import yaml
+import matplotlib.pyplot as plt
+import lightgbm as lgb
 from pyspark.sql import SparkSession
 import pandas as pd
-
-from insurance.config import InsuranceConfig
-from insurance.data_preprocessing import InsuranceDataProcessor
-from insurance.model_trainer import InsuranceModelTrainer
-
-# Optional logging/timer utilities
-from marvelous.logging import setup_logging
+from insurance.config import ProjectConfig
+from insurance.data_preprocessing import DataProcessor
+from insurance.model_trainer import ModelTrainer
 from marvelous.timer import Timer
-
-# Setup logging
-setup_logging(log_file="logs/insurance_pipeline.log")
-logger.info("Pipeline started.")
-
-# Load configuration
-config = InsuranceConfig()
-logger.info(f"Configuration: {config}")
+from marvelous.logging import setup_logging
 
 # COMMAND ----------
-# Initialize Spark session
+config = ProjectConfig.from_yaml(config_path="../project_config.yml", env="dev")
+setup_logging(log_file=f"/Volumes/{config.catalog_name}/{config.schema_name}/logs/marvelous-1.log")
+
+setup_logging(log_file="logs/marvelous-1.log")
+
+logger.info("Configuration loaded:")
+logger.info(yaml.dump(config, default_flow_style=False))
+
+# COMMAND ----------
 spark = SparkSession.builder.getOrCreate()
+df = spark.read.option("header", True).csv(config.data_path).toPandas()
 
-# Load & preprocess data
-with Timer() as data_timer:
-    processor = InsuranceDataProcessor(spark, config)
-    df = processor.load_data()
-    df = processor.preprocess()
-    df.head()
+with Timer() as preprocess_timer:
+    processor = DataProcessor(df, config, spark)
+    processor.preprocess()
 
-logger.info(f"Data loaded and preprocessed in {data_timer}")
+    train_set, test_set = processor.split_data() #for UC save
+    # Save to catalog
+    logger.info("Saving data to catalog")
+    processor.save_to_catalog(train_set, test_set)
 
-df.head()
+logger.info(f"Data preprocessing: {preprocess_timer}")
 
 # COMMAND ----------
-# Train + Evaluate model
-trainer = InsuranceModelTrainer(df, config, processor.feature_names)
-X_train, X_test, y_train, y_test = trainer.split()
+with Timer() as model_train:
+    trainer = ModelTrainer(train_set, config)
+    X_train, X_test, y_train, y_test = trainer.split()
 
-with Timer() as train_timer:
     best_params, best_score = trainer.tune_hyperparameters(X_train, y_train)
+
     final_model = trainer.train_final_model(X_train, y_train)
     y_pred = final_model.predict(X_test)
     metrics = trainer.evaluate(y_test, y_pred)
 
-logger.info(f"Model trained in {train_timer}")
-logger.info(f"Best Params: {best_params}")
-logger.info(f"R²: {metrics['r2']:.4f}, RMSE: {metrics['rmse']:.2f}, MAE: {metrics['mae']:.2f}")
+    print("Best params:", best_params)
+    print("R²:", metrics["r2"], "RMSE:", metrics["rmse"], "MAE:", metrics["mae"])
+logger.info(f"Model trainer and tuning: {model_train}")
 
 # COMMAND ----------
-# (Optional) Plot feature importances
-import matplotlib.pyplot as plt
-import lightgbm as lgb
+logger.info("Training set shape: %s", X_train.shape)
+logger.info("Test set shape: %s", X_test.shape)
 
+# COMMAND ----------
 lgb.plot_importance(final_model)
 plt.title("Feature Importance")
+plt.xticks(rotation=45)
 plt.show()
 
 # COMMAND ----------
-# (Optional) Save model to DBFS or MLflow
-# from joblib import dump
-# dump(final_model, "/dbfs/FileStore/models/best_lightgbm_model.pkl")
-
-# COMMAND ----------
-logger.info("Pipeline finished successfully.")
+# Enable change data feed (only once!)
+#logger.info("Enable change data feed")
+#processor.enable_change_data_feed()

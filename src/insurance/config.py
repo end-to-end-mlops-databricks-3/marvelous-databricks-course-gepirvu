@@ -1,15 +1,41 @@
-from dataclasses import dataclass
+# src/insurance/config.py
 
-@dataclass
-class InsuranceConfig:
-    dbfs_path: str = "dbfs:/Volumes/mlops_dev/pirvugeo/data/insurance.csv"
-    test_size: float = 0.2
-    random_state: int = 0
-    param_grid: dict = None
+from typing import Any
+import yaml
+from pydantic import BaseModel
 
-    def __post_init__(self):
-        self.param_grid = {
-            'num_leaves': [29, 30, 31],
-            'learning_rate': [0.08, 0.1, 0.12],
-            'n_estimators': [80, 100, 120]
-        }
+class ProjectConfig(BaseModel):
+    """Represent project configuration parameters loaded from YAML.
+
+    Handles feature specifications, catalog details, and experiment parameters.
+    Supports environment-specific configuration overrides.
+    """
+    num_features: list[str]
+    cat_features: list[str]
+    target: str
+    catalog_name: str
+    schema_name: str
+    parameters: dict[str, Any]
+    data_path: str
+
+    @classmethod
+    def from_yaml(cls, config_path: str, env: str = "dev") -> "ProjectConfig":
+        if env not in ["prd", "acc", "dev"]:
+            raise ValueError(f"Invalid environment: {env}. Expected 'prd', 'acc', or 'dev'")
+
+        with open(config_path) as f:
+            config_dict = yaml.safe_load(f)
+            config_dict["catalog_name"] = config_dict[env]["catalog_name"]
+            config_dict["schema_name"] = config_dict[env]["schema_name"]
+            config_dict["data_path"] = config_dict[env]["data_path"]
+            return cls(**config_dict)
+
+class Tags(BaseModel):
+    """Represents a set of tags for a Git commit.
+
+    Contains information about the Git SHA, branch, and job run ID.
+    """
+    git_sha: str
+    branch: str
+    job_run_id: str
+    data_path: str
