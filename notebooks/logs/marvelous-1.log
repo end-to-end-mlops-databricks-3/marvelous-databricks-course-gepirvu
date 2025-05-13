@@ -336,3 +336,61 @@ __pydantic_private__: null
 2025-05-13 18:59:00.032 | INFO     | __main__:<module>:1 - Training set shape: %s
 2025-05-13 18:59:00.034 | INFO     | __main__:<module>:2 - Test set shape: %s
 2025-05-13 19:00:35.258 | INFO     | __main__:<module>:2 - Saving data to catalog
+2025-05-13 19:04:52.870 | INFO     | __main__:<module>:6 - Configuration loaded:
+2025-05-13 19:04:52.877 | INFO     | __main__:<module>:7 - !!python/object:insurance.config.ProjectConfig
+__dict__:
+  cat_features:
+  - sex
+  - smoker
+  - region
+  catalog_name: mlops_dev
+  data_path: dbfs:/Volumes/mlops_dev/pirvugeo/data/insurance.csv
+  num_features:
+  - age
+  - bmi
+  - children
+  parameters:
+    learning_rate:
+    - 0.08
+    - 0.09
+    - 0.1
+    - 0.11
+    - 0.12
+    n_estimators:
+    - 80
+    - 90
+    - 100
+    - 110
+    - 120
+    num_leaves:
+    - 29
+    - 30
+    - 31
+    - 32
+    - 33
+  schema_name: pirvugeo
+  target: charges
+__pydantic_extra__: null
+__pydantic_fields_set__: !!set
+  cat_features: null
+  catalog_name: null
+  data_path: null
+  num_features: null
+  parameters: null
+  schema_name: null
+  target: null
+__pydantic_private__: null
+
+2025-05-13 19:04:58.010 | INFO     | __main__:<module>:10 - Data preprocessing: Elapsed time: 0.0190 seconds
+2025-05-13 19:05:01.785 | INFO     | __main__:<module>:10 - Data preprocessing: Elapsed time: 0.0201 seconds
+2025-05-13 19:08:03.698 | INFO     | __main__:<module>:13 - Model trainer and tuning: Elapsed time: 177.0997 seconds
+2025-05-13 19:08:17.874 | INFO     | __main__:<module>:1 - Training set shape: %s
+2025-05-13 19:08:17.874 | INFO     | __main__:<module>:2 - Test set shape: %s
+2025-05-13 19:08:24.546 | INFO     | __main__:<module>:2 - Saving data to catalog
+2025-05-13 19:16:53.216 | INFO     | __main__:<module>:2 - Saving data to catalog
+2025-05-13 19:17:04.950 | INFO     | __main__:<module>:10 - Data preprocessing: Elapsed time: 0.0174 seconds
+2025-05-13 19:17:17.634 | INFO     | __main__:<module>:2 - Saving data to catalog
+2025-05-13 19:17:42.699 | INFO     | __main__:<module>:10 - Saving data to catalog
+2025-05-13 19:18:51.705 | INFO     | __main__:<module>:10 - Saving data to catalog
+2025-05-13 19:19:31.534 | INFO     | __main__:<module>:13 - Data preprocessing: Elapsed time: 39.8433 seconds
+2025-05-13 19:20:26.829 | INFO     | __main__:<module>:2 - Enable change data feed

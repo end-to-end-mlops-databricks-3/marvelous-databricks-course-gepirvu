@@ -38,4 +38,4 @@ class Tags(BaseModel):
     git_sha: str
     branch: str
     job_run_id: str
-    data_path: str
+    
