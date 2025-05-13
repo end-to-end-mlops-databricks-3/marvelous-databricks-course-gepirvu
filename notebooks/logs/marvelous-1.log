@@ -394,3 +394,48 @@ __pydantic_private__: null
 2025-05-13 19:18:51.705 | INFO     | __main__:<module>:10 - Saving data to catalog
 2025-05-13 19:19:31.534 | INFO     | __main__:<module>:13 - Data preprocessing: Elapsed time: 39.8433 seconds
 2025-05-13 19:20:26.829 | INFO     | __main__:<module>:2 - Enable change data feed
+2025-05-13 23:14:49.172 | INFO     | __main__:<module>:6 - Configuration loaded:
+2025-05-13 23:14:49.178 | INFO     | __main__:<module>:7 - !!python/object:insurance.config.ProjectConfig
+__dict__:
+  cat_features:
+  - sex
+  - smoker
+  - region
+  catalog_name: mlops_dev
+  data_path: dbfs:/Volumes/mlops_dev/pirvugeo/data/insurance.csv
+  num_features:
+  - age
+  - bmi
+  - children
+  parameters:
+    learning_rate:
+    - 0.08
+    - 0.09
+    - 0.1
+    - 0.11
+    - 0.12
+    n_estimators:
+    - 80
+    - 90
+    - 100
+    - 110
+    - 120
+    num_leaves:
+    - 29
+    - 30
+    - 31
+    - 32
+    - 33
+  schema_name: pirvugeo
+  target: charges
+__pydantic_extra__: null
+__pydantic_fields_set__: !!set
+  cat_features: null
+  catalog_name: null
+  data_path: null
+  num_features: null
+  parameters: null
+  schema_name: null
+  target: null
+__pydantic_private__: null
+

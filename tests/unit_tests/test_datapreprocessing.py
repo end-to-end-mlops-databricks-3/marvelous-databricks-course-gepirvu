@@ -4,8 +4,7 @@ import pandas as pd
 import pytest
 from conftest import CATALOG_DIR
 from delta.tables import DeltaTable
-from pyspark.sql import SparkSession
-from pyspark.sql.connect.session import SparkSession as SparkSession
+from pyspark.sql.connect.session import SparkSession
 
 from insurance.config import ProjectConfig
 from insurance.data_preprocessing import DataProcessor
