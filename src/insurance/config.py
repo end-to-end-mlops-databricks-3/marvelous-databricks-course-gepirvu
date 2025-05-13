@@ -1,4 +1,9 @@
 # src/insurance/config.py
+"""Configuration module for the insurance project.
+
+Defines the structure and loading mechanism for project configuration
+such as features, target, catalog names, and experiment parameters.
+"""
 
 from typing import Any
 
@@ -23,6 +28,16 @@ class ProjectConfig(BaseModel):
 
     @classmethod
     def from_yaml(cls, config_path: str, env: str = "dev") -> "ProjectConfig":
+        """Load configuration from a YAML file for a specific environment.
+
+        Args:
+            config_path: Path to the YAML configuration file.
+            env: Environment name ('dev', 'acc', or 'prd').
+
+        Returns:
+            ProjectConfig: An instance of the project configuration.
+
+        """
         if env not in ["prd", "acc", "dev"]:
             raise ValueError(f"Invalid environment: {env}. Expected 'prd', 'acc', or 'dev'")
 

@@ -15,7 +15,7 @@ from tests.unit_tests.spark_config import spark_config
 
 @pytest.fixture(scope="session")
 def spark_session() -> Generator[DatabricksSession, None, None]:
-    """Creates a Spark Connect session to Databricks."""
+    """Create a Spark Connect session to Databricks."""
     spark = DatabricksSession.builder.remote(spark_config.host).getOrCreate()
     yield spark
     spark.stop()
