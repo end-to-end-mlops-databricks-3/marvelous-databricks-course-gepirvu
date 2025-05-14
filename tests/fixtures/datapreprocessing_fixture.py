@@ -4,7 +4,6 @@ from collections.abc import Generator
 
 import pandas as pd
 import pytest
-from databricks.connect import DatabricksSession
 from loguru import logger
 from pyspark.sql import SparkSession
 
@@ -14,9 +13,18 @@ from tests.unit_tests.spark_config import spark_config
 
 
 @pytest.fixture(scope="session")
-def spark_session() -> Generator[DatabricksSession, None, None]:
-    """Create a Spark Connect session to Databricks."""
-    spark = DatabricksSession.builder.remote(spark_config.host).getOrCreate()
+def spark_session() -> Generator[SparkSession, None, None]:
+    """Create a local Spark session for unit tests."""
+    builder = (
+        SparkSession.builder.master(spark_config.master)
+        .appName(spark_config.app_name)
+        .config("spark.executor.cores", spark_config.spark_executor_cores)
+        .config("spark.executor.instances", spark_config.spark_executor_instances)
+        .config("spark.sql.shuffle.partitions", spark_config.spark_sql_shuffle_partitions)
+        .config("spark.driver.bindAddress", spark_config.spark_driver_bindAddress)
+    )
+
+    spark = builder.getOrCreate()
     yield spark
     spark.stop()
 

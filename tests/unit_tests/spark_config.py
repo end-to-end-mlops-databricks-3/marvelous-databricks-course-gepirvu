@@ -1,14 +1,22 @@
-"""Spark Configuration module for local testing."""
+"""Spark configuration module for local testing."""
 
 from pydantic_settings import BaseSettings
 
 
-# Load configuration from environment variables
 class SparkConfig(BaseSettings):
-    """Configuration for Spark Connect to Databricks."""
+    """Configuration class for local Spark session.
 
-    host: str = "sc://dbc-c2e8445d-159d.cloud.databricks.com"
-    app_name: str = "insurance_test"
+    Loads Spark-related settings from environment variables if available.
+    Defaults are optimized for local development and unit testing.
+    """
+
+    master: str = "local[1]"
+    app_name: str = "local_test"
+    spark_executor_cores: str = "1"
+    spark_executor_instances: str = "1"
+    spark_sql_shuffle_partitions: str = "1"
+    spark_driver_bindAddress: str = "127.0.0.1"
 
 
+# Instantiate the configuration
 spark_config = SparkConfig()
