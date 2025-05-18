@@ -539,3 +539,53 @@ __pydantic_private__: null
 2025-05-14 11:58:53.480 | INFO     | __main__:<module>:13 - Model trainer and tuning: Elapsed time: 183.3112 seconds
 2025-05-14 12:00:46.850 | INFO     | __main__:<module>:1 - Training set shape: %s
 2025-05-14 12:00:46.850 | INFO     | __main__:<module>:2 - Test set shape: %s
+2025-05-14 18:25:33.331 | INFO     | __main__:<module>:6 - Configuration loaded:
+2025-05-14 18:25:33.336 | INFO     | __main__:<module>:7 - !!python/object:insurance.config.ProjectConfig
+__dict__:
+  cat_features:
+  - sex
+  - smoker
+  - region
+  catalog_name: mlops_dev
+  data_path: dbfs:/Volumes/mlops_dev/pirvugeo/data/insurance.csv
+  num_features:
+  - age
+  - bmi
+  - children
+  parameters:
+    learning_rate:
+    - 0.08
+    - 0.09
+    - 0.1
+    - 0.11
+    - 0.12
+    n_estimators:
+    - 80
+    - 90
+    - 100
+    - 110
+    - 120
+    num_leaves:
+    - 29
+    - 30
+    - 31
+    - 32
+    - 33
+  schema_name: pirvugeo
+  target: charges
+__pydantic_extra__: null
+__pydantic_fields_set__: !!set
+  cat_features: null
+  catalog_name: null
+  data_path: null
+  num_features: null
+  parameters: null
+  schema_name: null
+  target: null
+__pydantic_private__: null
+
+2025-05-14 18:25:52.452 | INFO     | __main__:<module>:10 - Saving data to catalog
+2025-05-14 18:26:31.201 | INFO     | __main__:<module>:13 - Data preprocessing: Elapsed time: 38.7883 seconds
+2025-05-14 18:29:09.119 | INFO     | __main__:<module>:13 - Model trainer and tuning: Elapsed time: 157.8791 seconds
+2025-05-14 18:29:09.161 | INFO     | __main__:<module>:1 - Training set shape: %s
+2025-05-14 18:29:09.163 | INFO     | __main__:<module>:2 - Test set shape: %s
