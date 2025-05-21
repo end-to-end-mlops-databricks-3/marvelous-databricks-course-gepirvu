@@ -101,5 +101,6 @@ check_spark_env.sh
 
 notebooks/logs/
 
-coverage.lcov 
+coverage.lcov
 .coverage
+src/insurance/data_preprocessing_old.py
