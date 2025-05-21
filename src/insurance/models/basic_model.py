@@ -99,9 +99,12 @@ class BasicModel:
         return self.best_params_, self.best_score_
 
     def train(self) -> None:
-        """Train the model."""
-        logger.info("🚀 Training LightGBM model...")
-        self.pipeline.fit(self.X_train, self.y_train)
+        """Train the model only if not trained by hyperparameter tuning."""
+        if hasattr(self, "best_params_"):
+            logger.info("⚠️ Skipping training: already trained during hyperparameter tuning.")
+        else:
+            logger.info("🚀 Training LightGBM model...")
+            self.pipeline.fit(self.X_train, self.y_train)
 
     def log_model(self) -> None:
         """Log the model using MLflow."""
