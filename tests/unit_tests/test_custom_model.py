@@ -2,7 +2,7 @@
 
 import mlflow
 import pandas as pd
-from conftest import CATALOG_DIR
+from conftest import CATALOG_DIR, TRACKING_URI
 from lightgbm import LGBMRegressor
 from loguru import logger
 from mlflow.entities.model_registry.registered_model import RegisteredModel
@@ -13,6 +13,8 @@ from sklearn.pipeline import Pipeline
 
 from insurance.config import ProjectConfig, Tags
 from insurance.models.custom_model import CustomModel
+
+mlflow.set_tracking_uri(TRACKING_URI)
 
 print("MLflow tracking URI:", mlflow.get_tracking_uri())
 
