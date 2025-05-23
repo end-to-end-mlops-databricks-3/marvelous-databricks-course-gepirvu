@@ -1,18 +1,19 @@
 """Conftest module."""
-
-import platform
-
 from insurance import PROJECT_DIR
 
+# Define directories
 MLRUNS_DIR = PROJECT_DIR / "tests" / "mlruns"
 CATALOG_DIR = PROJECT_DIR / "tests" / "catalog"
-CATALOG_DIR.mkdir(parents=True, exist_ok=True)  # noqa
 
-# To make the TRACKING_URI  path compatible for both macOS and Windows
-if platform.system() == "Windows":
-    TRACKING_URI = f"file:///{MLRUNS_DIR.as_posix()}"
-else:
-    TRACKING_URI = f"file://{MLRUNS_DIR.as_posix()}"
+# Ensure directories exist
+CATALOG_DIR.mkdir(parents=True, exist_ok=True)
+MLRUNS_DIR.mkdir(parents=True, exist_ok=True)
 
+# Use URI-safe absolute path
+TRACKING_URI = MLRUNS_DIR.resolve().as_uri()
 
-pytest_plugins = ["tests.fixtures.datapreprocessing_fixture", "tests.fixtures.custom_model_fixture"]
+# Register fixtures
+pytest_plugins = [
+    "tests.fixtures.datapreprocessing_fixture",
+    "tests.fixtures.custom_model_fixture",
+]

@@ -1,6 +1,6 @@
 aliases:
-  latest-model: '7'
+  latest-model: '9'
 creation_timestamp: 1748014394503
 description: null
-last_updated_timestamp: 1748017036379
+last_updated_timestamp: 1748021027809
 name: mlops_dev.pirvugeo.insurance_model_custom
