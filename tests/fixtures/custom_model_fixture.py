@@ -18,6 +18,7 @@ from insurance.models.custom_model import CustomModel
 
 whl_file_name = None  # Global variable to store the .whl file name
 
+
 @pytest.fixture(scope="session")
 def tags() -> Tags:
     """Create and return a Tags instance for the test session.
@@ -25,6 +26,7 @@ def tags() -> Tags:
     This fixture provides a Tags object with predefined values for git_sha, branch, and job_run_id.
     """
     return Tags(git_sha="wxyz", branch="test", job_run_id="9")
+
 
 @pytest.fixture(scope="session", autouse=True)
 def create_mlruns_directory() -> None:
@@ -40,9 +42,8 @@ def create_mlruns_directory() -> None:
     else:
         logger.info(f"MLFlow tracking directory {MLRUNS_DIR} does not exist")
 
+
 @pytest.fixture(scope="session", autouse=True)
-
-
 def build_whl_file() -> None:
     """Session-scoped fixture to build a .whl file for the project.
 
@@ -87,6 +88,7 @@ def build_whl_file() -> None:
     finally:
         # Restore the original working directory
         os.chdir(original_directory)
+
 
 @pytest.fixture(scope="function")
 def mock_custom_model(config: ProjectConfig, tags: Tags, spark_session: SparkSession) -> CustomModel:

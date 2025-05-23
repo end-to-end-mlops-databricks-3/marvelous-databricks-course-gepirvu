@@ -2,7 +2,7 @@
 
 import mlflow
 import pandas as pd
-from conftest import CATALOG_DIR, TRACKING_URI
+from conftest import CATALOG_DIR
 from lightgbm import LGBMRegressor
 from loguru import logger
 from mlflow.entities.model_registry.registered_model import RegisteredModel
@@ -15,6 +15,8 @@ from insurance.config import ProjectConfig, Tags
 from insurance.models.custom_model import CustomModel
 
 print("MLflow tracking URI:", mlflow.get_tracking_uri())
+
+
 def test_custom_model_init(config: ProjectConfig, tags: Tags, spark_session: SparkSession) -> None:
     """Test the initialization of CustomModel.
 
@@ -24,7 +26,6 @@ def test_custom_model_init(config: ProjectConfig, tags: Tags, spark_session: Spa
     :param tags: Tags associated with the model
     :param spark_session: Spark session object
     """
-    
     model = CustomModel(config=config, tags=tags, spark=spark_session, code_paths=[])
     assert isinstance(model, CustomModel)
     assert isinstance(model.config, ProjectConfig)
@@ -32,6 +33,7 @@ def test_custom_model_init(config: ProjectConfig, tags: Tags, spark_session: Spa
     assert isinstance(model.spark, SparkSession)
     assert isinstance(model.code_paths, list)
     assert not model.code_paths
+
 
 def test_load_data_validate_df_assignment(mock_custom_model: CustomModel) -> None:
     """Validate correct assignment of train and test DataFrames from CSV files.
@@ -47,6 +49,7 @@ def test_load_data_validate_df_assignment(mock_custom_model: CustomModel) -> Non
     # Validate DataFrame assignments
     pd.testing.assert_frame_equal(mock_custom_model.train_set, train_data)
     pd.testing.assert_frame_equal(mock_custom_model.test_set, test_data)
+
 
 def test_load_data_validate_splits(mock_custom_model: CustomModel) -> None:
     """Verify correct feature/target splits in training and test data.
@@ -66,6 +69,7 @@ def test_load_data_validate_splits(mock_custom_model: CustomModel) -> None:
     pd.testing.assert_frame_equal(mock_custom_model.X_test, test_data[expected_features])
     pd.testing.assert_series_equal(mock_custom_model.y_test, test_data[mock_custom_model.target])
 
+
 def test_prepare_features(mock_custom_model: CustomModel) -> None:
     """Test that prepare_features method initializes pipeline components correctly.
 
@@ -82,6 +86,7 @@ def test_prepare_features(mock_custom_model: CustomModel) -> None:
     assert isinstance(mock_custom_model.pipeline.steps[0][1], ColumnTransformer)
     assert isinstance(mock_custom_model.pipeline.steps[1][1], LGBMRegressor)
 
+
 def test_train(mock_custom_model: CustomModel) -> None:
     """Test that train method configures pipeline with correct feature handling.
 
@@ -97,6 +102,7 @@ def test_train(mock_custom_model: CustomModel) -> None:
 
     assert mock_custom_model.pipeline.n_features_in_ == len(expected_feature_names)
     assert sorted(expected_feature_names) == sorted(mock_custom_model.pipeline.feature_names_in_)
+
 
 def test_log_model_with_PandasDataset(mock_custom_model: CustomModel) -> None:
     """Test model logging with PandasDataset validation.
@@ -133,6 +139,7 @@ def test_log_model_with_PandasDataset(mock_custom_model: CustomModel) -> None:
 
     assert model_uri
 
+
 def test_register_model(mock_custom_model: CustomModel) -> None:
     """Test the registration of a custom MLflow model.
 
@@ -167,6 +174,7 @@ def test_register_model(mock_custom_model: CustomModel) -> None:
     alias, version = model.aliases.popitem()
     assert alias == "latest-model"
 
+
 def test_retrieve_current_run_metadata(mock_custom_model: CustomModel) -> None:
     """Test retrieving the current run metadata from a mock custom model.
 
@@ -185,6 +193,7 @@ def test_retrieve_current_run_metadata(mock_custom_model: CustomModel) -> None:
     assert metrics
     assert isinstance(params, dict)
     assert params
+
 
 def test_load_latest_model_and_predict(mock_custom_model: CustomModel) -> None:
     """Test the process of loading the latest model and making predictions.

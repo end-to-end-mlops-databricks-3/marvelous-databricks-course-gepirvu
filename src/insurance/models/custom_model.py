@@ -8,6 +8,7 @@ target → The column to predict.
 parameters → Hyperparameters for LightGBM.
 catalog_name, schema_name → Database schema names for Databricks tables.
 """
+
 from typing import Literal
 
 import mlflow
@@ -22,12 +23,13 @@ from mlflow.utils.environment import _mlflow_conda_env
 from pyspark.sql import SparkSession
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
-from sklearn.model_selection import GridSearchCV
 
 from insurance.config import ProjectConfig, Tags
 from insurance.utils import adjust_predictions
+
 
 class InsuranceModelWrapper(mlflow.pyfunc.PythonModel):
     """Wrapper class for machine learning models to be used with MLflow.
@@ -58,6 +60,7 @@ class InsuranceModelWrapper(mlflow.pyfunc.PythonModel):
         adjusted_predictions = adjust_predictions(predictions)
         logger.info(f"adjusted_predictions: {adjusted_predictions}")
         return adjusted_predictions
+
 
 class CustomModel:
     """Custom model class for house price prediction.
@@ -105,7 +108,7 @@ class CustomModel:
         self.X_test = self.test_set[self.num_features + self.cat_features]
         self.y_test = self.test_set[self.target]
         logger.info("✅ Data loaded.")
-    
+
     def prepare_features(self) -> None:
         """Encode categorical features and define a preprocessing pipeline.
 
@@ -121,7 +124,7 @@ class CustomModel:
             steps=[("preprocessor", self.preprocessor), ("regressor", LGBMRegressor(**self.parameters))]
         )
         logger.info("✅ Preprocessing ready.")
-    
+
     def tune_hyperparameters(self) -> tuple[dict, float]:
         """Perform grid search to tune LightGBM hyperparameters."""
         logger.info("🔍 Tuning hyperparameters...")
@@ -141,7 +144,7 @@ class CustomModel:
 
         logger.info(f"✅ Best Params: {self.best_params_}, Best R2: {self.best_score_}")
         return self.best_params_, self.best_score_
-    
+
     def train(self) -> None:
         """Train the model only if not trained by hyperparameter tuning."""
         if hasattr(self, "best_params_"):
@@ -149,7 +152,7 @@ class CustomModel:
         else:
             logger.info("🚀 Training LightGBM model...")
             self.pipeline.fit(self.X_train, self.y_train)
-    
+
     def log_model(self, dataset_type: Literal["PandasDataset", "SparkDataset"] = "SparkDataset") -> None:
         """Log the trained model and its metrics to MLflow.
 
@@ -182,7 +185,7 @@ class CustomModel:
             mlflow.log_metric("mae", mae)
             mlflow.log_metric("r2_score", r2)
             mlflow.log_param("best_params", self.best_params_)
-            mlflow.log_param("best_score", self.best_score_)    
+            mlflow.log_param("best_score", self.best_score_)
 
             # Log the model
             signature = infer_signature(model_input=self.X_train, model_output=self.pipeline.predict(self.X_train))
@@ -212,25 +215,25 @@ class CustomModel:
                 signature=signature,
                 input_example=self.X_train.iloc[0:1],
             )
-    
+
     def register_model(self) -> None:
         """Register model in Unity Catalog."""
         logger.info("📦 Registering model to Unity Catalog...")
         registered_model = mlflow.register_model(
-            model_uri=f"runs:/{self.run_id}/pyfunc-insurance-model", 
-            name=f"{self.catalog_name}.{self.schema_name}.insurance_model_custom", 
-            tags=self.tags
+            model_uri=f"runs:/{self.run_id}/pyfunc-insurance-model",
+            name=f"{self.catalog_name}.{self.schema_name}.insurance_model_custom",
+            tags=self.tags,
         )
         logger.info(f"✅ Model registered: version {registered_model.version}")
         # Set the alias for the latest model version
         latest_version = registered_model.version
 
         MlflowClient().set_registered_model_alias(
-            name=f"{self.catalog_name}.{self.schema_name}.insurance_model_custom", 
-            alias="latest-model", 
-            version=latest_version
+            name=f"{self.catalog_name}.{self.schema_name}.insurance_model_custom",
+            alias="latest-model",
+            version=latest_version,
         )
-    
+
     def retrieve_current_run_dataset(self) -> DatasetSource:
         """Retrieve the dataset used in the current MLflow run.
 
@@ -252,7 +255,7 @@ class CustomModel:
         params = run.data.to_dictionary()["params"]
         logger.info("✅ Dataset metadata loaded.")
         return metrics, params
-    
+
     def load_latest_model_and_predict(self, input_data: pd.DataFrame) -> np.ndarray:
         """Load the latest model (alias=latest-model) from MLflow and make predictions.
 
@@ -279,4 +282,4 @@ class CustomModel:
         predictions = model.predict(input_data)
 
         # Return predictions as a DataFrame
-        return predictions 
+        return predictions
