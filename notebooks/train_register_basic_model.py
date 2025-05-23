@@ -45,6 +45,7 @@ basic_model.log_model()
 run_id = mlflow.search_runs(
     experiment_names=["/Shared/insurance-basic"], filter_string="tags.branch='feature2'"
 ).run_id[0]
+print(run_id)
 # COMMAND ----------
 model = mlflow.sklearn.load_model(f"runs:/{run_id}/lightgbm-pipeline-model")
 print(model)
