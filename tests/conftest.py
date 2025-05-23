@@ -19,3 +19,4 @@ pytest_plugins = [
     "tests.fixtures.custom_model_fixture",
 ]
 
+
