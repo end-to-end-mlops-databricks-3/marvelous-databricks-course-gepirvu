@@ -1,4 +1,5 @@
 """Conftest module."""
+
 from insurance import PROJECT_DIR
 
 # Define directories
@@ -17,3 +18,4 @@ pytest_plugins = [
     "tests.fixtures.datapreprocessing_fixture",
     "tests.fixtures.custom_model_fixture",
 ]
+
