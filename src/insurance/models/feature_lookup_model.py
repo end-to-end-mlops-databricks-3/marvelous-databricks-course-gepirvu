@@ -82,10 +82,12 @@ class FeatureLookUpModel:
         self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set").withColumn(
             "Id", F.monotonically_increasing_id().cast("string")
         )
+        self.train_set = self.train_set.withColumn("Id", F.col("Id").cast("long"))
+  
 
         self.test_set = (
             self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set")
-            .withColumn("Id", F.monotonically_increasing_id().cast("string"))
+            .withColumn("Id", F.monotonically_increasing_id().cast("long"))
             .toPandas()
         )
 
@@ -94,8 +96,7 @@ class FeatureLookUpModel:
     def feature_engineering(self) -> None:
         """Perform feature lookup and prepare pandas-ready datasets."""
 
-        self.train_set = self.train_set.withColumn("Id", F.col("Id").cast("long"))
-        self.test_set = self.test_set.withColumn("Id", F.col("Id").cast("long"))
+  
 
         train_df = self.train_set.drop(*self.num_features)
 
