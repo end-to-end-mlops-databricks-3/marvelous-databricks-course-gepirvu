@@ -19,3 +19,19 @@ config = ProjectConfig.from_yaml(config_path="../project_config.yml")
 # COMMAND ----------
 print (config)
 print(config.experiment_name_fe)
+
+# COMMAND ----------
+# COMMAND ----------
+# Initialize model
+fe_model = FeatureLookUpModel(config=config, tags=tags, spark=spark)
+# COMMAND ----------
+# Create feature table
+fe_model.create_feature_table()
+
+# COMMAND ----------
+# Load data
+fe_model.load_data()
+
+# COMMAND ----------
+# Perform feature engineering
+fe_model.feature_engineering()

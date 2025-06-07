@@ -92,8 +92,10 @@ class FeatureLookUpModel:
 
     def feature_engineering(self) -> None:
         """Perform feature lookup and prepare pandas-ready datasets."""
+        train_df = self.train_set.drop(*self.num_features)
+
         self.training_set = self.fe.create_training_set(
-            df=self.train_set,
+            df=train_df,
             label=self.target,
             feature_lookups=[
                 FeatureLookup(table_name=self.feature_table_name, feature_names=self.num_features, lookup_key="Id")
@@ -118,11 +120,17 @@ class FeatureLookUpModel:
         """
         logger.info("🚀 Training LightGBM model...")
 
+        params = {
+            "learning_rate": 0.1,
+            "n_estimators": 100,
+            "num_leaves": 31
+        }
+
         preprocessor = ColumnTransformer(
             transformers=[("cat", OneHotEncoder(handle_unknown="ignore"), self.cat_features)], remainder="passthrough"
         )
 
-        pipeline = Pipeline([("preprocessor", preprocessor), ("regressor", LGBMRegressor(**self.parameters))])
+        pipeline = Pipeline([("preprocessor", preprocessor), ("regressor", LGBMRegressor(**params))])
 
         mlflow.set_experiment(self.experiment_name)
 
@@ -132,7 +140,7 @@ class FeatureLookUpModel:
             y_pred = pipeline.predict(self.X_test)
 
             mlflow.log_param("model_type", "LightGBM with preprocessing")
-            mlflow.log_params(self.parameters)
+            mlflow.log_params(params)
             mlflow.log_metric("mse", mean_squared_error(self.y_test, y_pred))
             mlflow.log_metric("mae", mean_absolute_error(self.y_test, y_pred))
             mlflow.log_metric("r2_score", r2_score(self.y_test, y_pred))
