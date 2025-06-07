@@ -1,10 +1,8 @@
 """FeatureLookUp model implementation."""
 
-from datetime import datetime
-
 import mlflow
 from databricks import feature_engineering
-from databricks.feature_engineering import FeatureFunction, FeatureLookup
+from databricks.feature_engineering import FeatureLookup
 from databricks.sdk import WorkspaceClient
 from lightgbm import LGBMRegressor
 from loguru import logger
@@ -29,7 +27,7 @@ class FeatureLookUpModel:
         self.workspace = WorkspaceClient()
         self.fe = feature_engineering.FeatureEngineeringClient()
 
-         # Extract settings from the config
+        # Extract settings from the config
         self.num_features = self.config.num_features  # ['age', 'bmi', 'children']
         self.cat_features = self.config.cat_features  # ['sex', 'smoker', 'region']
         self.target = self.config.target
@@ -43,6 +41,10 @@ class FeatureLookUpModel:
         self.tags = tags.dict()
 
     def create_feature_table(self) -> None:
+        """Create or update the insurance_features table and populate it.
+
+        This table stores features related to insurance.
+        """
         self.spark.sql(f"""
         CREATE OR REPLACE TABLE {self.feature_table_name} (
             Id STRING NOT NULL,
@@ -53,10 +55,10 @@ class FeatureLookUpModel:
         TBLPROPERTIES (delta.enableChangeDataFeed = true);
         """)
         logger.info("✅ Feature table created.")
-    
+
         # Simulate auto-generation of Id and insert from train/test
-        for dataset in ['train_set', 'test_set']:
-            self.spark.sql(f'''
+        for dataset in ["train_set", "test_set"]:
+            self.spark.sql(f"""
             INSERT INTO {self.feature_table_name}
             SELECT
                 MONOTONICALLY_INCREASING_ID() AS Id,
@@ -64,21 +66,25 @@ class FeatureLookUpModel:
                 bmi,
                 children
             FROM {self.catalog_name}.{self.schema_name}.{dataset}
-            ''')
+            """)
 
         logger.info("✅ Feature table populated from train/test sets.")
 
     def load_data(self) -> None:
         """Load train and test sets with synthetic Ids for FeatureLookup."""
-        self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set") \
-            .drop("age", "bmi", "children")
-        
-        self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set") \
+        self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set").drop(
+            "age", "bmi", "children"
+        )
+
+        self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set").withColumn(
+            "Id", F.monotonically_increasing_id().cast("string")
+        )
+
+        self.test_set = (
+            self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set")
             .withColumn("Id", F.monotonically_increasing_id().cast("string"))
-    
-        self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set") \
-            .withColumn("Id", F.monotonically_increasing_id().cast("string")) \
             .toPandas()
+        )
 
         logger.info("✅ Data loaded with synthetic Ids.")
 
@@ -88,13 +94,9 @@ class FeatureLookUpModel:
             df=self.train_set,
             label=self.target,
             feature_lookups=[
-                FeatureLookup(
-                    table_name=self.feature_table_name,
-                    feature_names=self.num_features,
-                    lookup_key="Id"
-                )
+                FeatureLookup(table_name=self.feature_table_name, feature_names=self.num_features, lookup_key="Id")
             ],
-            exclude_columns=["update_timestamp_utc"]
+            exclude_columns=["update_timestamp_utc"],
         )
 
         self.training_df = self.training_set.load_df().toPandas()
@@ -108,17 +110,17 @@ class FeatureLookUpModel:
         logger.info("✅ Feature engineering completed.")
 
     def train(self) -> None:
+        """Train the model and log results to MLflow.
+
+        Uses a pipeline with preprocessing and LightGBM regressor.
+        """
         logger.info("🚀 Training LightGBM model...")
 
         preprocessor = ColumnTransformer(
-            transformers=[("cat", OneHotEncoder(handle_unknown="ignore"), self.cat_features)],
-            remainder="passthrough"
+            transformers=[("cat", OneHotEncoder(handle_unknown="ignore"), self.cat_features)], remainder="passthrough"
         )
 
-        pipeline = Pipeline([
-            ("preprocessor", preprocessor),
-            ("regressor", LGBMRegressor(**self.parameters))
-        ])
+        pipeline = Pipeline([("preprocessor", preprocessor), ("regressor", LGBMRegressor(**self.parameters))])
 
         mlflow.set_experiment(self.experiment_name)
 
@@ -140,35 +142,39 @@ class FeatureLookUpModel:
                 flavor=mlflow.sklearn,
                 artifact_path="insurance-model-fe-lightgbm",
                 training_set=self.training_set,
-                signature=signature
+                signature=signature,
             )
 
             logger.info("✅ Model trained and logged to MLflow.")
 
     def register_model(self) -> str:
+        """Register the trained model to MLflow registry.
+
+        Registers the model and sets alias to 'latest-model'.
+        """
         model_name = f"{self.catalog_name}.{self.schema_name}.insurance_model_fe_lightgbm"
 
         registered_model = mlflow.register_model(
-            model_uri=f"runs:/{self.run_id}/insurance-model-fe-lightgbm",
-            name=model_name,
-            tags=self.tags
+            model_uri=f"runs:/{self.run_id}/insurance-model-fe-lightgbm", name=model_name, tags=self.tags
         )
 
         latest_version = registered_model.version
         client = MlflowClient()
-        client.set_registered_model_alias(
-            name=model_name,
-            version=latest_version,
-            alias="latest-model"
-        )
+        client.set_registered_model_alias(name=model_name, version=latest_version, alias="latest-model")
 
         logger.info("✅ Model registered.")
         return latest_version
-    
+
     def load_latest_model_and_predict(self, X: DataFrame) -> DataFrame:
+        """Load the trained model from MLflow using Feature Engineering Client and make predictions.
+
+        Loads the model with the alias 'latest-model' and scores the batch.
+        :param X: DataFrame containing the input features.
+        :return: DataFrame containing the predictions.
+        """
         model_uri = f"models:/{self.catalog_name}.{self.schema_name}.insurance_model_fe_lightgbm@latest-model"
         return self.fe.score_batch(model_uri=model_uri, df=X)
-    
+
     def update_feature_table(self) -> None:
         """Update the insurance_features table with the latest records from train and test sets.
 
