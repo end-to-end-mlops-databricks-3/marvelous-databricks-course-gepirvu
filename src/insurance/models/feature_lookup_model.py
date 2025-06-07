@@ -14,6 +14,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
+from pyspark.sql.functions import col
 
 from insurance.config import ProjectConfig, Tags
 
@@ -92,6 +93,10 @@ class FeatureLookUpModel:
 
     def feature_engineering(self) -> None:
         """Perform feature lookup and prepare pandas-ready datasets."""
+
+        self.train_set = self.train_set.withColumn("Id", F.col("Id").cast("long"))
+        self.test_set = self.test_set.withColumn("Id", F.col("Id").cast("long"))
+
         train_df = self.train_set.drop(*self.num_features)
 
         self.training_set = self.fe.create_training_set(
