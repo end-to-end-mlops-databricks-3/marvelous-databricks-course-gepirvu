@@ -14,7 +14,6 @@ from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
-from pyspark.sql.functions import col
 
 from insurance.config import ProjectConfig, Tags
 
@@ -83,7 +82,6 @@ class FeatureLookUpModel:
             "Id", F.monotonically_increasing_id().cast("string")
         )
         self.train_set = self.train_set.withColumn("Id", F.col("Id").cast("long"))
-  
 
         self.test_set = (
             self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set")
@@ -95,9 +93,6 @@ class FeatureLookUpModel:
 
     def feature_engineering(self) -> None:
         """Perform feature lookup and prepare pandas-ready datasets."""
-
-  
-
         train_df = self.train_set.drop(*self.num_features)
 
         self.training_set = self.fe.create_training_set(
@@ -126,11 +121,7 @@ class FeatureLookUpModel:
         """
         logger.info("🚀 Training LightGBM model...")
 
-        params = {
-            "learning_rate": 0.1,
-            "n_estimators": 100,
-            "num_leaves": 31
-        }
+        params = {"learning_rate": 0.1, "n_estimators": 100, "num_leaves": 31}
 
         preprocessor = ColumnTransformer(
             transformers=[("cat", OneHotEncoder(handle_unknown="ignore"), self.cat_features)], remainder="passthrough"

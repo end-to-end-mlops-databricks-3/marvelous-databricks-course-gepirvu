@@ -33,5 +33,5 @@ fe_model.create_feature_table()
 fe_model.load_data()
 
 # COMMAND ----------
-# Perform feature engineering
+# Perform feature engineering task
 fe_model.feature_engineering()
