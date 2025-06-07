@@ -54,6 +54,8 @@ class FeatureLookUpModel:
         )
         TBLPROPERTIES (delta.enableChangeDataFeed = true);
         """)
+
+        self.spark.sql(f"ALTER TABLE {self.feature_table_name} ADD CONSTRAINT insurance_pk PRIMARY KEY(Id);")
         logger.info("✅ Feature table created.")
 
         # Simulate auto-generation of Id and insert from train/test
