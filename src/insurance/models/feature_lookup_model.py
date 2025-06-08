@@ -107,9 +107,9 @@ class FeatureLookUpModel:
         self.training_df = self.training_set.load_df().toPandas()
 
         # Remaining categorical columns are assumed to be still in original datasets
-        self.X_train = self.training_df[self.num_features + self.cat_features]
+        self.X_train = self.training_df[["Id"] + self.num_features + self.cat_features]
         self.y_train = self.training_df[self.target]
-        self.X_test = self.test_set[self.num_features + self.cat_features]
+        self.X_test = self.test_set[["Id"] + self.num_features + self.cat_features]
         self.y_test = self.test_set[self.target]
 
         logger.info("✅ Feature engineering completed.")
