@@ -14,6 +14,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
+import numpy as np
 
 from insurance.config import ProjectConfig, Tags
 
@@ -112,6 +113,10 @@ class FeatureLookUpModel:
         self.X_test = self.test_set[["Id"] + self.num_features + self.cat_features]
         self.y_test = self.test_set[self.target]
 
+        print(self.X_train["age"].isna().sum())             # count of NaN
+        print(np.isinf(self.X_train["age"]).sum())          # count of inf/-inf
+        print(self.X_train[self.X_train["age"].isna()])     # show NaN rows
+
         logger.info("✅ Feature engineering completed.")
 
     def train(self) -> None:
@@ -135,6 +140,7 @@ class FeatureLookUpModel:
             self.run_id = run.info.run_id
             pipeline.fit(self.X_train, self.y_train)
             y_pred = pipeline.predict(self.X_test)
+
 
             self.X_train = self.X_train.astype({
                 "sex": "object",
