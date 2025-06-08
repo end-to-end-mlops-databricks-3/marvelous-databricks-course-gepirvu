@@ -1,4 +1,4 @@
-"""FeaturLookUp Serving module build"""
+"""FeaturLookUp Serving module build."""
 
 import time
 
@@ -29,7 +29,7 @@ class FeatureLookupServing:
         self.online_table_name = f"{self.feature_table_name}_online"
         self.model_name = model_name
         self.endpoint_name = endpoint_name
-    
+
     def create_online_table(self) -> None:
         """Create an online table for house features."""
         spec = OnlineTableSpec(
@@ -50,7 +50,7 @@ class FeatureLookupServing:
         latest_version = client.get_model_version_by_alias(self.model_name, alias="latest-model").version
         print(f"Latest model version: {latest_version}")
         return latest_version
-    
+
     def deploy_or_update_serving_endpoint(
         self,
         version: str = "latest",

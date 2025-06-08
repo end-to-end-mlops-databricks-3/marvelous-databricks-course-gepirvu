@@ -1,6 +1,7 @@
 """FeatureLookUp model implementation."""
 
 import mlflow
+import numpy as np
 from databricks import feature_engineering
 from databricks.feature_engineering import FeatureLookup
 from databricks.sdk import WorkspaceClient
@@ -14,7 +15,6 @@ from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
-import numpy as np
 
 from insurance.config import ProjectConfig, Tags
 
@@ -84,6 +84,7 @@ class FeatureLookUpModel:
         self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set").withColumn(
             "Id", F.monotonically_increasing_id().cast("string")
         )
+        self.train_set = self.train_set.withColumn("Id", self.train_set["Id"].cast("string"))
         
         logger.info("✅ Data loaded with synthetic Ids.")
 
@@ -108,9 +109,9 @@ class FeatureLookUpModel:
         self.X_test = self.test_set[["Id"] + self.num_features + self.cat_features]
         self.y_test = self.test_set[self.target]
 
-        print(self.X_train["age"].isna().sum())             # count of NaN
-        print(np.isinf(self.X_train["age"]).sum())          # count of inf/-inf
-        print(self.X_train[self.X_train["age"].isna()])     # show NaN rows
+        print(self.X_train["age"].isna().sum())  # count of NaN
+        print(np.isinf(self.X_train["age"]).sum())  # count of inf/-inf
+        print(self.X_train[self.X_train["age"].isna()])  # show NaN rows
 
         logger.info("✅ Feature engineering completed.")
 
