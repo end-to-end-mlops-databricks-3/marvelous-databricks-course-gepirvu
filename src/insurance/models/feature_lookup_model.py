@@ -82,12 +82,11 @@ class FeatureLookUpModel:
         self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set").toPandas()
 
         self.train_set = self.train_set.withColumn("Id", self.train_set["Id"].cast("string"))
-        
+
         logger.info("✅ Data loaded successfully.")
 
     def feature_engineering(self) -> None:
         """Perform feature lookup and prepare pandas-ready datasets."""
-
         self.training_set = self.fe.create_training_set(
             df=self.train_set,
             label=self.target,
