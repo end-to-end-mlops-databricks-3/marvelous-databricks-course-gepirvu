@@ -83,7 +83,7 @@ class FeatureLookUpModel:
 
         self.train_set = self.train_set.withColumn("Id", self.train_set["Id"].cast("string"))
         
-        logger.info("✅ Data loaded with synthetic Ids.")
+        logger.info("✅ Data loaded successfully.")
 
     def feature_engineering(self) -> None:
         """Perform feature lookup and prepare pandas-ready datasets."""
