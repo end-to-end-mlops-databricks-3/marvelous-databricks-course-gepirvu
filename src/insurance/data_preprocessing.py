@@ -9,6 +9,8 @@ import pandas as pd
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_timestamp, to_utc_timestamp
 from sklearn.model_selection import train_test_split
+from pyspark.sql.functions import col
+from pyspark.sql.types import LongType
 
 from insurance.config import ProjectConfig
 
@@ -36,7 +38,7 @@ class DataProcessor:
         feature_columns = [col for col in self.df.columns if col != self.config.target]
         relevant_columns = feature_columns + [self.config.target]
         self.df = self.df[relevant_columns]
-
+        self.df["Id"] = self.df["Id"].astype("int64")
         print("\n[DataProcessor] Data after preprocessing:")
         print(self.df.head())
 

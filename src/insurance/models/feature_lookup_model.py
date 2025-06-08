@@ -64,7 +64,7 @@ class FeatureLookUpModel:
             self.spark.sql(f"""
             INSERT INTO {self.feature_table_name}
             SELECT
-                MONOTONICALLY_INCREASING_ID() AS Id,
+                Id,
                 age,
                 bmi,
                 children
@@ -79,17 +79,12 @@ class FeatureLookUpModel:
             "age", "bmi", "children"
         )
 
+        self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set").toPandas()
+
         self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set").withColumn(
             "Id", F.monotonically_increasing_id().cast("string")
         )
-        self.train_set = self.train_set.withColumn("Id", F.col("Id").cast("long"))
-
-        self.test_set = (
-            self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set")
-            .withColumn("Id", F.monotonically_increasing_id().cast("long"))
-            .toPandas()
-        )
-
+        
         logger.info("✅ Data loaded with synthetic Ids.")
 
     def feature_engineering(self) -> None:
@@ -140,17 +135,6 @@ class FeatureLookUpModel:
             self.run_id = run.info.run_id
             pipeline.fit(self.X_train, self.y_train)
             y_pred = pipeline.predict(self.X_test)
-
-
-            self.X_train = self.X_train.astype({
-                "sex": "object",
-                "smoker": "object",
-                "region": "object",
-                "Id": "int64",
-                "age": "int64",
-                "bmi": "float64",
-                "children": "int64"
-            })
 
             mlflow.log_param("model_type", "LightGBM with preprocessing")
             mlflow.log_params(params)
@@ -239,7 +223,6 @@ class FeatureLookUpModel:
         :return: True if the current model performs better, False otherwise.
         """
         X_test = test_set.drop(self.config.target)
-        X_test = X_test.withColumn("Id", F.monotonically_increasing_id().cast("string"))
 
         predictions_latest = self.load_latest_model_and_predict(X_test).withColumnRenamed(
             "prediction", "prediction_latest"
@@ -250,7 +233,6 @@ class FeatureLookUpModel:
             "prediction", "prediction_current"
         )
 
-        test_set = test_set.withColumn("Id", F.monotonically_increasing_id().cast("string"))
         test_set = test_set.select("Id", self.config.target)
 
         logger.info("Predictions are ready.")
