@@ -81,19 +81,15 @@ class FeatureLookUpModel:
 
         self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set").toPandas()
 
-        self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set").withColumn(
-            "Id", F.monotonically_increasing_id().cast("string")
-        )
         self.train_set = self.train_set.withColumn("Id", self.train_set["Id"].cast("string"))
         
         logger.info("✅ Data loaded with synthetic Ids.")
 
     def feature_engineering(self) -> None:
         """Perform feature lookup and prepare pandas-ready datasets."""
-        train_df = self.train_set.drop(*self.num_features)
 
         self.training_set = self.fe.create_training_set(
-            df=train_df,
+            df=self.train_set,
             label=self.target,
             feature_lookups=[
                 FeatureLookup(table_name=self.feature_table_name, feature_names=self.num_features, lookup_key="Id")
@@ -104,9 +100,9 @@ class FeatureLookUpModel:
         self.training_df = self.training_set.load_df().toPandas()
 
         # Remaining categorical columns are assumed to be still in original datasets
-        self.X_train = self.training_df[["Id"] + self.num_features + self.cat_features]
+        self.X_train = self.training_df[self.num_features + self.cat_features]
         self.y_train = self.training_df[self.target]
-        self.X_test = self.test_set[["Id"] + self.num_features + self.cat_features]
+        self.X_test = self.test_set[self.num_features + self.cat_features]
         self.y_test = self.test_set[self.target]
 
         print(self.X_train["age"].isna().sum())  # count of NaN
