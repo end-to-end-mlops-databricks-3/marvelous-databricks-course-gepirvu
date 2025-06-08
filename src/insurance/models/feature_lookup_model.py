@@ -48,7 +48,7 @@ class FeatureLookUpModel:
         """
         self.spark.sql(f"""
         CREATE OR REPLACE TABLE {self.feature_table_name} (
-            Id BIGINT NOT NULL,
+            Id STRING NOT NULL,
             age BIGINT,
             bmi DOUBLE,
             children bigint
