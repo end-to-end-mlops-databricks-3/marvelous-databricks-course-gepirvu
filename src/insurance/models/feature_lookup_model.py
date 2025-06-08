@@ -136,6 +136,16 @@ class FeatureLookUpModel:
             pipeline.fit(self.X_train, self.y_train)
             y_pred = pipeline.predict(self.X_test)
 
+            self.X_train = self.X_train.astype({
+                "sex": "object",
+                "smoker": "object",
+                "region": "object",
+                "Id": "int64",
+                "age": "int64",
+                "bmi": "float64",
+                "children": "int64"
+            })
+
             mlflow.log_param("model_type", "LightGBM with preprocessing")
             mlflow.log_params(params)
             mlflow.log_metric("mse", mean_squared_error(self.y_test, y_pred))
