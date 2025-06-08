@@ -1,4 +1,4 @@
-"""FeaturLookUp Serving module."""
+"""FeaturLookUp Serving module build"""
 
 import time
 
