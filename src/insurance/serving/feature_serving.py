@@ -1,4 +1,5 @@
 """Feature serving implementation."""
+
 from databricks import feature_engineering
 from databricks.feature_engineering import FeatureLookup
 from databricks.sdk import WorkspaceClient
@@ -42,7 +43,7 @@ class FeatureServing:
             FeatureLookup(
                 table_name=self.feature_table_name,
                 lookup_key="Id",
-                feature_names=["age", "bmi", "children"],
+                feature_names=["age", "bmi", "children", "charges"],
             )
         ]
         self.fe.create_feature_spec(name=self.feature_spec_name, features=features, exclude_columns=None)
