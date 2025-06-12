@@ -36,7 +36,7 @@ class DataProcessor:
         feature_columns = [col for col in self.df.columns if col != self.config.target]
         relevant_columns = feature_columns + [self.config.target]
         self.df = self.df[relevant_columns]
-
+        self.df["Id"] = self.df["Id"].astype("int64")
         print("\n[DataProcessor] Data after preprocessing:")
         print(self.df.head())
 

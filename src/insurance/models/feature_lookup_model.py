@@ -1,6 +1,7 @@
 """FeatureLookUp model implementation."""
 
 import mlflow
+import numpy as np
 from databricks import feature_engineering
 from databricks.feature_engineering import FeatureLookup
 from databricks.sdk import WorkspaceClient
@@ -47,7 +48,7 @@ class FeatureLookUpModel:
         """
         self.spark.sql(f"""
         CREATE OR REPLACE TABLE {self.feature_table_name} (
-            Id BIGINT NOT NULL,
+            Id STRING NOT NULL,
             age BIGINT,
             bmi DOUBLE,
             children bigint
@@ -63,7 +64,7 @@ class FeatureLookUpModel:
             self.spark.sql(f"""
             INSERT INTO {self.feature_table_name}
             SELECT
-                MONOTONICALLY_INCREASING_ID() AS Id,
+                Id,
                 age,
                 bmi,
                 children
@@ -78,25 +79,16 @@ class FeatureLookUpModel:
             "age", "bmi", "children"
         )
 
-        self.train_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.train_set").withColumn(
-            "Id", F.monotonically_increasing_id().cast("string")
-        )
-        self.train_set = self.train_set.withColumn("Id", F.col("Id").cast("long"))
+        self.test_set = self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set").toPandas()
 
-        self.test_set = (
-            self.spark.table(f"{self.catalog_name}.{self.schema_name}.test_set")
-            .withColumn("Id", F.monotonically_increasing_id().cast("long"))
-            .toPandas()
-        )
+        self.train_set = self.train_set.withColumn("Id", self.train_set["Id"].cast("string"))
 
-        logger.info("✅ Data loaded with synthetic Ids.")
+        logger.info("✅ Data loaded successfully.")
 
     def feature_engineering(self) -> None:
         """Perform feature lookup and prepare pandas-ready datasets."""
-        train_df = self.train_set.drop(*self.num_features)
-
         self.training_set = self.fe.create_training_set(
-            df=train_df,
+            df=self.train_set,
             label=self.target,
             feature_lookups=[
                 FeatureLookup(table_name=self.feature_table_name, feature_names=self.num_features, lookup_key="Id")
@@ -111,6 +103,10 @@ class FeatureLookUpModel:
         self.y_train = self.training_df[self.target]
         self.X_test = self.test_set[self.num_features + self.cat_features]
         self.y_test = self.test_set[self.target]
+
+        print(self.X_train["age"].isna().sum())  # count of NaN
+        print(np.isinf(self.X_train["age"]).sum())  # count of inf/-inf
+        print(self.X_train[self.X_train["age"].isna()])  # show NaN rows
 
         logger.info("✅ Feature engineering completed.")
 
@@ -223,7 +219,6 @@ class FeatureLookUpModel:
         :return: True if the current model performs better, False otherwise.
         """
         X_test = test_set.drop(self.config.target)
-        X_test = X_test.withColumn("Id", F.monotonically_increasing_id().cast("string"))
 
         predictions_latest = self.load_latest_model_and_predict(X_test).withColumnRenamed(
             "prediction", "prediction_latest"
@@ -234,7 +229,6 @@ class FeatureLookUpModel:
             "prediction", "prediction_current"
         )
 
-        test_set = test_set.withColumn("Id", F.monotonically_increasing_id().cast("string"))
         test_set = test_set.select("Id", self.config.target)
 
         logger.info("Predictions are ready.")
