@@ -112,6 +112,7 @@ src/insurance/data_preprocessing_old.py
 
 test-reports
 .coverage
+# Ignore test artifacts and temporary files from the MLOps course
 test-mlops_course/
 
 # Databricks-specific files
