@@ -10,20 +10,14 @@ from loguru import logger
 
 BASE_URL = "http://127.0.0.1:5088"
 
-test_data = {
-    "age": 19,
-    "bmi": 27.9,
-    "children": 0,    
-    "sex": "female",
-    "smoker": "yes",
-    "region": "southwest"
-}
+test_data = {"age": 19, "bmi": 27.9, "children": 0, "sex": "female", "smoker": "yes", "region": "southwest"}
 # Create a DataFrame from the test data
 
 pandas_df = pd.DataFrame([test_data])
 
 payload_dataframe_split = json.dumps({"dataframe_split": pandas_df.to_dict(orient="split")})
 payload_dataframe_records = json.dumps({"dataframe_records": pandas_df.to_dict(orient="records")})
+
 
 @pytest.mark.ci_exclude
 def test_inference_server_health() -> None:
@@ -35,6 +29,7 @@ def test_inference_server_health() -> None:
     logger.info(f"Received {response.status_code}.")
     assert response.status_code == 200
 
+
 @pytest.mark.ci_exclude
 def test_inference_server_ping() -> None:
     """Test that the inference server ping endpoint is reachable.
@@ -44,6 +39,7 @@ def test_inference_server_ping() -> None:
     response = requests.get(f"{BASE_URL}/ping")
     logger.info(f"Received {response.status_code}.")
     assert response.status_code == 200
+
 
 @pytest.mark.ci_exclude
 def test_inference_server_version() -> None:
@@ -55,6 +51,7 @@ def test_inference_server_version() -> None:
     logger.info(f"Received {response.status_code} with response of '{response.text}'.")
     assert response.status_code == 200
     assert response.text == "2.17.0"
+
 
 @pytest.mark.ci_exclude
 def test_inference_server_invocations_with_dataframe_split() -> None:
@@ -71,6 +68,7 @@ def test_inference_server_invocations_with_dataframe_split() -> None:
     values = response.json()["predictions"]
     assert isinstance(values, list)
     assert isinstance(values[0], float)
+
 
 @pytest.mark.ci_exclude
 def test_inference_server_invocations_with_dataframe_records() -> None:
@@ -91,6 +89,7 @@ def test_inference_server_invocations_with_dataframe_records() -> None:
     assert isinstance(values, list)
     assert isinstance(values[0], float)
 
+
 @pytest.mark.ci_exclude
 def test_inference_server_invocations_with_dataframe_records_should_fail_when_contact_request_violation() -> None:
     """Test that inference server invocations with incomplete DataFrame records fail as expected.
@@ -110,6 +109,7 @@ def test_inference_server_invocations_with_dataframe_records_should_fail_when_co
         )
         logger.info(f"Received {response.status_code} with response of '{response.text}'.")
         assert response.status_code == 400
+
 
 @pytest.mark.ci_exclude
 def test_infererence_server_invocations_with_full_dataframe() -> None:
