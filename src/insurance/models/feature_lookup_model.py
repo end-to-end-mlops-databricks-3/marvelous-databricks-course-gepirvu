@@ -224,7 +224,7 @@ class FeatureLookUpModel:
             "prediction", "prediction_latest"
         )
 
-        current_model_uri = f"runs:/{self.run_id}/insurance_model_fe_lightgbm"
+        current_model_uri = f"runs:/{self.run_id}/insurance-model-fe-lightgbm"
         predictions_current = self.fe.score_batch(model_uri=current_model_uri, df=X_test).withColumnRenamed(
             "prediction", "prediction_current"
         )
