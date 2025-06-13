@@ -3,7 +3,7 @@ from loguru import logger
 from pyspark.sql import SparkSession
 
 from insurance.config import ProjectConfig
-from insurance.data_preprocessing import DataProcessor, generate_synthetic_data, generate_test_data
+from insurance.data_preprocessing import DataProcessor, generate_synthetic_data_insurance, generate_test_data_insurance
 from marvelous.common import create_parser
 
 args = create_parser()
@@ -27,12 +27,12 @@ if is_test==0:
     # Generate synthetic data.
     # This is mimicking a new data arrival. In real world, this would be a new batch of data.
     # df is passed to infer schema
-    new_data = generate_synthetic_data(df, num_rows=100)
+    new_data = generate_synthetic_data_insurance(df, num_rows=100)
     logger.info("Synthetic data generated.")
 else:
     # Generate synthetic data
     # This is mimicking a new data arrival. This is a valid example for integration testing.
-    new_data = generate_test_data(df, num_rows=100)
+    new_data = generate_test_data_insurance(df, num_rows=100)
     logger.info("Test data generated.")
 
 # Initialize DataProcessor

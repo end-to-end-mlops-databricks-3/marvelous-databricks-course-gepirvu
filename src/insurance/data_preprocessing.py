@@ -5,14 +5,15 @@ Handles encoding, missing value imputation, dataset splitting,
 and catalog persistence using Spark.
 """
 
+import time
+
+import numpy as np
 import pandas as pd
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_timestamp, to_utc_timestamp
 from sklearn.model_selection import train_test_split
-import numpy as np
+
 from insurance.config import ProjectConfig
-import datetime
-import time
 
 
 class DataProcessor:
@@ -102,6 +103,7 @@ class DataProcessor:
             "SET TBLPROPERTIES (delta.enableChangeDataFeed = true);"
         )
 
+
 def generate_synthetic_data_insurance(df: pd.DataFrame, drift: bool = False, num_rows: int = 500) -> pd.DataFrame:
     """Generate synthetic insurance data based on statistical properties of existing dataset.
 
@@ -112,6 +114,7 @@ def generate_synthetic_data_insurance(df: pd.DataFrame, drift: bool = False, num
 
     Returns:
         pd.DataFrame: Generated synthetic insurance data
+
     """
     synthetic_data = pd.DataFrame()
 
@@ -137,7 +140,7 @@ def generate_synthetic_data_insurance(df: pd.DataFrame, drift: bool = False, num
         if "charges" in synthetic_data.columns:
             synthetic_data["charges"] *= 1.5  # Simulate cost increase
         if "bmi" in synthetic_data.columns:
-            synthetic_data["bmi"] += 5        # Obesity trend
+            synthetic_data["bmi"] += 5  # Obesity trend
         if "region" in synthetic_data.columns:
             synthetic_data["region"] = np.random.choice(["southeast", "northeast"], size=num_rows)
 
@@ -147,16 +150,18 @@ def generate_synthetic_data_insurance(df: pd.DataFrame, drift: bool = False, num
     synthetic_data["update_timestamp_utc"] = pd.Timestamp.utcnow()
 
     # Cast types to match schema
-    synthetic_data = synthetic_data.astype({
-        "Id": "int64",
-        "age": "int64",
-        "children": "int64",
-        "bmi": "float64",
-        "charges": "float64",
-        "sex": "object",
-        "smoker": "object",
-        "region": "object"
-    })
+    synthetic_data = synthetic_data.astype(
+        {
+            "Id": "int64",
+            "age": "int64",
+            "children": "int64",
+            "bmi": "float64",
+            "charges": "float64",
+            "sex": "object",
+            "smoker": "object",
+            "region": "object",
+        }
+    )
 
     return synthetic_data
 
