@@ -103,7 +103,6 @@ def create_or_refresh_monitoring(config: ProjectConfig, spark: SparkSession, wor
     insurance_features = spark.table(f"{config.catalog_name}.{config.schema_name}.insurance_features")
 
     df_final_with_features = df_final_with_status.join(insurance_features, on="Id", how="left")
-    df_final_with_features.head(5).show()
 
     df_final_with_features.write.format("delta").mode("append").saveAsTable(
         f"{config.catalog_name}.{config.schema_name}.model_monitoring"
@@ -142,9 +141,9 @@ def create_monitoring_table(config: ProjectConfig, spark: SparkSession, workspac
             problem_type=MonitorInferenceLogProblemType.PROBLEM_TYPE_REGRESSION,
             prediction_col="prediction",
             timestamp_col="timestamp",
-            granularities=["30 minutes"],
+            granularities=["10 minutes"],
             model_id_col="model_name",
-            label_col="sale_price",
+            label_col="insurance_price",
         ),
     )
 

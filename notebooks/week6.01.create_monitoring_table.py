@@ -26,6 +26,21 @@ cat_features = config.cat_features
 
 train_set = spark.table(f"{config.catalog_name}.{config.schema_name}.train_set").toPandas()
 test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.test_set").toPandas()
+# COMMAND ----------
+from insurance.data_preprocessing import generate_synthetic_data_insurance
+
+inference_data_skewed = generate_synthetic_data_insurance(train_set, drift= True, num_rows=200)
+inference_data_skewed = inference_data_skewed.drop(columns=["update_timestamp_utc"])
+inference_data_skewed.head(5)
+
+inference_data_skewed_spark = spark.createDataFrame(inference_data_skewed).withColumn(
+    "update_timestamp_utc", to_utc_timestamp(current_timestamp(), "UTC")
+)
+
+inference_data_skewed_spark.write.mode("overwrite").saveAsTable(
+    f"{config.catalog_name}.{config.schema_name}.inference_data_skewed"
+)
+
 
 # COMMAND ----------
 
@@ -52,7 +67,6 @@ target = train_set["charges"]
 # Train a Random Forest model
 model = RandomForestRegressor(random_state=42)
 model.fit(features, target)
-# Train a Random Forest model
 
 # COMMAND ----------
 # Identify the most important features
@@ -63,27 +77,6 @@ feature_importances = pd.DataFrame({
 
 print("Top 5 important features:")
 print(feature_importances.head(5))
-
-# COMMAND ----------
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Generate Synthetic Data
-
-# COMMAND ----------
-from insurance.data_preprocessing import generate_synthetic_data_insurance
-
-inference_data_skewed = generate_synthetic_data_insurance(train_set, drift= True, num_rows=200)
-inference_data_skewed = inference_data_skewed.drop(columns=["update_timestamp_utc"])
-inference_data_skewed.head(5)
-
-inference_data_skewed_spark = spark.createDataFrame(inference_data_skewed).withColumn(
-    "update_timestamp_utc", to_utc_timestamp(current_timestamp(), "UTC")
-)
-
-inference_data_skewed_spark.write.mode("overwrite").saveAsTable(
-    f"{config.catalog_name}.{config.schema_name}.inference_data_skewed"
-)
 
 # COMMAND ----------
 
@@ -110,8 +103,8 @@ existing_table = workspace.online_tables.get(online_table_name)
 logger.info("Online table already exists. Inititating table update.")
 pipeline_id = existing_table.spec.pipeline_id
 update_response = workspace.pipelines.start_update(pipeline_id=pipeline_id, full_refresh=False)
-update_response = workspace.pipelines.start_update(
-    pipeline_id=pipeline_id, full_refresh=False)
+#update_response = workspace.pipelines.start_update(
+#    pipeline_id=pipeline_id, full_refresh=False)
 while True:
     update_info = workspace.pipelines.get_update(pipeline_id=pipeline_id, 
                             update_id=update_response.update_id)
@@ -144,7 +137,8 @@ from pyspark.sql import SparkSession
 from insurance.config import ProjectConfig
 
 # Load configuration
-config = ProjectConfig.from_yaml(config_path="project_config.yml", env="dev")
+
+config = ProjectConfig.from_yaml(config_path="../project_config.yml", env="dev")
 
 test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.test_set") \
                         .withColumn("Id", col("Id").cast("string")) \
@@ -177,7 +171,7 @@ test_set_records = test_set[required_columns].to_dict(orient="records")
 # Two different way to send request to the endpoint
 # 1. Using https endpoint
 def send_request_https(dataframe_record):
-    model_serving_endpoint = f"https://{host}/serving-endpoints/house-prices-model-serving-fe/invocations"
+    model_serving_endpoint = f"https://{host}/serving-endpoints/insurance-model-serving-fe/invocations"
     response = requests.post(
         model_serving_endpoint,
         headers={"Authorization": f"Bearer {token}"},
@@ -188,14 +182,14 @@ def send_request_https(dataframe_record):
 # 2. Using workspace client
 def send_request_workspace(dataframe_record):
     response = workspace.serving_endpoints.query(
-        name="house-prices-model-serving-fe",
+        name="insurance-model-serving-fe",
         dataframe_records=[dataframe_record]
     )
     return response
 
 # COMMAND ----------
 # Loop over test records and send requests for 10 minutes
-end_time = datetime.datetime.now() + datetime.timedelta(minutes=20)
+end_time = datetime.datetime.now() + datetime.timedelta(minutes=10)
 for index, record in enumerate(itertools.cycle(test_set_records)):
     if datetime.datetime.now() >= end_time:
         break
@@ -208,7 +202,7 @@ for index, record in enumerate(itertools.cycle(test_set_records)):
 # COMMAND ----------
 
 # Loop over skewed records and send requests for 10 minutes
-end_time = datetime.datetime.now() + datetime.timedelta(minutes=30)
+end_time = datetime.datetime.now() + datetime.timedelta(minutes=10)
 for index, record in enumerate(itertools.cycle(sampled_skewed_records)):
     if datetime.datetime.now() >= end_time:
         break
