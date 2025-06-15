@@ -127,13 +127,19 @@ def generate_synthetic_data_insurance(df: pd.DataFrame, drift: bool = False, num
             synthetic_data[column] = np.random.normal(mean, std, num_rows)
 
             # Ensure positive for charges, bmi, age
-            if column in {"charges", "bmi", "age"}:
+            if column in {"charges", "bmi", "age", "children"}:
                 synthetic_data[column] = np.maximum(0, synthetic_data[column])
 
         elif pd.api.types.is_categorical_dtype(df[column]) or df[column].dtype == object:
-            synthetic_data[column] = np.random.choice(
-                df[column].dropna().unique(), size=num_rows, p=df[column].value_counts(normalize=True)
-            )
+            # Custom constraint for known columns
+            if column == "sex":
+                synthetic_data[column] = np.random.choice(["male", "female"], size=num_rows)
+            elif column == "smoker":
+                synthetic_data[column] = np.random.choice(["yes", "no"], size=num_rows)
+            else:
+                choices = df[column].dropna().unique()
+                probs = df[column].value_counts(normalize=True).reindex(choices, fill_value=1.0 / len(choices)).values
+                synthetic_data[column] = np.random.choice(choices, size=num_rows, p=probs)
 
     # Inject drift if enabled
     if drift:
