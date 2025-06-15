@@ -1,5 +1,5 @@
 # Databricks notebook source
-# !pip install house_price-1.1.1-py3-none-any.whl
+# %pip install --upgrade --force-reinstall /dbfs/tmp/insurance-0.0.1-py3-none-any.whl
 
 # COMMAND ----------
 

@@ -96,11 +96,20 @@ def create_or_refresh_monitoring(config: ProjectConfig, spark: SparkSession, wor
         .withColumnRenamed("charges", "charges_inference")
         .withColumn("label", F.coalesce(F.col("charges_test"), F.col("charges_inference")).cast("double"))
         .drop("charges_test", "charges_inference")
+        .withColumn("charges", F.col("charges").cast("double"))
+        .withColumn("prediction", F.col("prediction").cast("double"))
         .dropna(subset=["label", "prediction"])
     )
 
 
     insurance_features = spark.table(f"{config.catalog_name}.{config.schema_name}.insurance_features")
+
+    insurance_features = insurance_features.select(
+        "Id",
+        F.col("age").alias("age_feature"),
+        F.col("bmi").alias("bmi_feature"),
+        F.col("children").alias("children_feature")
+    )
 
     df_final_with_features = df_final_with_status.join(insurance_features, on="Id", how="left")
 
