@@ -138,9 +138,9 @@ def generate_synthetic_data_insurance(df: pd.DataFrame, drift: bool = False, num
     # Inject drift if enabled
     if drift:
         if "charges" in synthetic_data.columns:
-            synthetic_data["charges"] *= 1.5  # Simulate cost increase
+            synthetic_data["charges"] *= 100.5  # Simulate cost increase
         if "bmi" in synthetic_data.columns:
-            synthetic_data["bmi"] += 5  # Obesity trend
+            synthetic_data["bmi"] += 20  # Obesity trend
         if "region" in synthetic_data.columns:
             synthetic_data["region"] = np.random.choice(["southeast", "northeast"], size=num_rows)
 
