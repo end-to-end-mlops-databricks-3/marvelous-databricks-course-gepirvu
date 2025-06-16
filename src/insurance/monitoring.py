@@ -147,7 +147,7 @@ def create_monitoring_table(config: ProjectConfig, spark: SparkSession, workspac
             timestamp_col="timestamp",
             granularities=["30 minutes"],
             model_id_col="model_name",
-            label_col="insurance_price",
+            label_col="charges",
         ),
     )
 
