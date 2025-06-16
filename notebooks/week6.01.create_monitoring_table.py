@@ -1,5 +1,10 @@
 # Databricks notebook source
-# %pip install --upgrade --force-reinstall /dbfs/tmp/insurance-0.0.1-py3-none-any.whl
+# MAGIC %pip install --upgrade --force-reinstall /dbfs/tmp/insurance-0.0.1-py3-none-any.whl
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
 
 # COMMAND ----------
 
@@ -26,7 +31,9 @@ cat_features = config.cat_features
 
 train_set = spark.table(f"{config.catalog_name}.{config.schema_name}.train_set").toPandas()
 test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.test_set").toPandas()
+
 # COMMAND ----------
+
 from insurance.data_preprocessing import generate_synthetic_data_insurance
 
 inference_data_skewed = generate_synthetic_data_insurance(train_set, drift= True, num_rows=200)
@@ -69,6 +76,7 @@ model = RandomForestRegressor(random_state=42)
 model.fit(features, target)
 
 # COMMAND ----------
+
 # Identify the most important features
 feature_importances = pd.DataFrame({
     'Feature': features.columns,
@@ -89,7 +97,9 @@ workspace = WorkspaceClient()
 import time
 from databricks.sdk import WorkspaceClient
 workspace = WorkspaceClient()
+
 # COMMAND ----------
+
 spark.sql(f"""
     INSERT INTO {config.catalog_name}.{config.schema_name}.insurance_features
     SELECT Id, age, bmi, children
@@ -97,6 +107,7 @@ spark.sql(f"""
 """)
 
 # COMMAND ----------
+
 online_table_name = f"{config.catalog_name}.{config.schema_name}.insurance_features_online"
 
 existing_table = workspace.online_tables.get(online_table_name)
@@ -148,6 +159,15 @@ test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.test_set") \
 inference_data_skewed = spark.table(f"{config.catalog_name}.{config.schema_name}.inference_data_skewed") \
                         .withColumn("Id", col("Id").cast("string")) \
                         .toPandas()
+
+# COMMAND ----------
+
+test_set.head( 5)
+
+# COMMAND ----------
+
+inference_data_skewed.head(5)
+
 # COMMAND ----------
 
 token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
@@ -160,14 +180,28 @@ import requests
 import time
 
 workspace = WorkspaceClient()
+
 # COMMAND ----------
+
 # Required columns for inference
 required_columns = ["Id", "sex", "smoker", "region", "age", "bmi", "children"]
 
 # Sample records from inference datasets
 sampled_skewed_records = inference_data_skewed[required_columns].to_dict(orient="records")
 test_set_records = test_set[required_columns].to_dict(orient="records")
+
 # COMMAND ----------
+
+print(sampled_skewed_records)
+#{'Id': '1750090878936', 'sex': 'female', 'smoker': 'yes', 'region': 'southeast', 'age': 31, 'bmi': 46.000947138279116, 'children': 0}
+
+# COMMAND ----------
+
+print(test_set_records)
+#{'Id': '764', 'sex': 'female', 'smoker': 'no', 'region': 'northeast', 'age': 45, 'bmi': 25.175, 'children': 2}
+
+# COMMAND ----------
+
 # Two different way to send request to the endpoint
 # 1. Using https endpoint
 def send_request_https(dataframe_record):
@@ -188,6 +222,7 @@ def send_request_workspace(dataframe_record):
     return response
 
 # COMMAND ----------
+
 # Loop over test records and send requests for 10 minutes
 end_time = datetime.datetime.now() + datetime.timedelta(minutes=10)
 for index, record in enumerate(itertools.cycle(test_set_records)):
