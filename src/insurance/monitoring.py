@@ -145,7 +145,7 @@ def create_monitoring_table(config: ProjectConfig, spark: SparkSession, workspac
             problem_type=MonitorInferenceLogProblemType.PROBLEM_TYPE_REGRESSION,
             prediction_col="prediction",
             timestamp_col="timestamp",
-            granularities=["10 minutes"],
+            granularities=["30 minutes"],
             model_id_col="model_name",
             label_col="insurance_price",
         ),
