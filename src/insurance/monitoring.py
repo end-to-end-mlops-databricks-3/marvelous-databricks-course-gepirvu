@@ -25,27 +25,29 @@ def create_or_refresh_monitoring(config: ProjectConfig, spark: SparkSession, wor
     :param spark: Spark session used for executing SQL queries and transformations.
     :param workspace: Workspace object used for managing quality monitors.
     """
-    inf_table = spark.sql(
-        f"SELECT * FROM {config.catalog_name}.{config.schema_name}.`model-serving-fe_payload`"
-    )
+    inf_table = spark.sql(f"SELECT * FROM {config.catalog_name}.{config.schema_name}.`model-serving-fe_payload`")
 
-    request_schema = StructType([
-    StructField(
-        "dataframe_records",
-        ArrayType(
-            StructType([
-                StructField("Id", StringType(), True),
-                StructField("sex", StringType(), True),
-                StructField("smoker", StringType(), True),
-                StructField("region", StringType(), True),
-                StructField("age", IntegerType(), True),
-                StructField("bmi", DoubleType(), True),
-                StructField("children", IntegerType(), True),
-            ])
-        ),
-        True
+    request_schema = StructType(
+        [
+            StructField(
+                "dataframe_records",
+                ArrayType(
+                    StructType(
+                        [
+                            StructField("Id", StringType(), True),
+                            StructField("sex", StringType(), True),
+                            StructField("smoker", StringType(), True),
+                            StructField("region", StringType(), True),
+                            StructField("age", IntegerType(), True),
+                            StructField("bmi", DoubleType(), True),
+                            StructField("children", IntegerType(), True),
+                        ]
+                    )
+                ),
+                True,
+            )
+        ]
     )
-])
 
     response_schema = StructType(
         [
@@ -66,9 +68,7 @@ def create_or_refresh_monitoring(config: ProjectConfig, spark: SparkSession, wor
 
     df_exploded = inf_table_parsed.withColumn("record", F.explode(F.col("parsed_request.dataframe_records")))
 
-    df_final = df_exploded.withColumn(
-        "timestamp_ms", (F.col("request_time").cast("long") * 1000)
-    ).select(
+    df_final = df_exploded.withColumn("timestamp_ms", (F.col("request_time").cast("long") * 1000)).select(
         F.col("request_time").alias("timestamp"),
         F.col("timestamp_ms"),
         F.col("databricks_request_id"),
@@ -82,15 +82,15 @@ def create_or_refresh_monitoring(config: ProjectConfig, spark: SparkSession, wor
         F.col("record.children"),
         F.col("parsed_response.predictions")[0].alias("prediction"),
         F.lit("insurance_model_fe_lightgbm").alias("model_name"),
-)
+    )
 
+    df_final = df_final.withColumn("Id", F.col("Id").cast("bigint"))
     test_set = spark.table(f"{config.catalog_name}.{config.schema_name}.test_set")
     inference_set_skewed = spark.table(f"{config.catalog_name}.{config.schema_name}.inference_data_skewed")
 
-# Join prediction with ground truth
+    # Join prediction with ground truth
     df_final_with_status = (
-        df_final
-        .join(test_set.select("Id", "charges"), on="Id", how="left")
+        df_final.join(test_set.select("Id", "charges"), on="Id", how="left")
         .withColumnRenamed("charges", "charges_test")
         .join(inference_set_skewed.select("Id", "charges"), on="Id", how="left")
         .withColumnRenamed("charges", "charges_inference")
@@ -100,8 +100,11 @@ def create_or_refresh_monitoring(config: ProjectConfig, spark: SparkSession, wor
         .dropna(subset=["charges", "prediction"])
     )
 
-
-    insurance_features = spark.table(f"{config.catalog_name}.{config.schema_name}.insurance_features")
+    insurance_features = spark.table(f"{config.catalog_name}.{config.schema_name}.insurance_features") \
+    .withColumnRenamed("age", "age_feature") \
+    .withColumnRenamed("bmi", "bmi_feature") \
+    .withColumnRenamed("children", "children_feature") \
+    .withColumn("Id", F.col("Id").cast("bigint"))
 
     df_final_with_features = df_final_with_status.join(insurance_features, on="Id", how="left")
 
