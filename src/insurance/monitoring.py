@@ -100,11 +100,13 @@ def create_or_refresh_monitoring(config: ProjectConfig, spark: SparkSession, wor
         .dropna(subset=["charges", "prediction"])
     )
 
-    insurance_features = spark.table(f"{config.catalog_name}.{config.schema_name}.insurance_features") \
-    .withColumnRenamed("age", "age_feature") \
-    .withColumnRenamed("bmi", "bmi_feature") \
-    .withColumnRenamed("children", "children_feature") \
-    .withColumn("Id", F.col("Id").cast("bigint"))
+    insurance_features = (
+        spark.table(f"{config.catalog_name}.{config.schema_name}.insurance_features")
+        .withColumnRenamed("age", "age_feature")
+        .withColumnRenamed("bmi", "bmi_feature")
+        .withColumnRenamed("children", "children_feature")
+        .withColumn("Id", F.col("Id").cast("bigint"))
+    )
 
     df_final_with_features = df_final_with_status.join(insurance_features, on="Id", how="left")
 
