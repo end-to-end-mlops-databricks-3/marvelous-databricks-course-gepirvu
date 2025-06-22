@@ -169,7 +169,7 @@ class FeatureLookUpModel:
         return latest_version
 
     def load_latest_model_and_predict(self, X: DataFrame) -> DataFrame:
-        """Load the trained model from MLflow using Feature Engineering Client and make prediction.
+        """Load the trained model from MLflow using Feature Engineering Client and make predictions.
 
         Loads the model with the alias 'latest-model' and scores the batch.
         :param X: DataFrame containing the input features.
